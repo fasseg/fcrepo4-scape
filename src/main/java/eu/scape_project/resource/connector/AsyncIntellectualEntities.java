@@ -11,17 +11,17 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package eu.scape_project.resource;
+package eu.scape_project.resource.connector;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.ws.rs.*;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
 import javax.xml.bind.JAXBException;
 
 import org.fcrepo.http.commons.session.InjectedSession;
@@ -30,20 +30,20 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import eu.scape_project.model.IntellectualEntity;
-import eu.scape_project.model.VersionList;
 import eu.scape_project.service.ConnectorService;
 import eu.scape_project.util.ScapeMarshaller;
 
 /**
- * JAX-RS Resource for Intellectual Entity Versions
+ * JAX-RS Resource for Intellectual Entities This implementation exposes the
+ * /scape/entity-async endpoint as specified in the Connector API Documentation
  * 
  * @author frank asseg
  * 
  */
 @Component
 @Scope("prototype")
-@Path("/scape/entity-version-list")
-public class IntellectualEntityVersions {
+@Path("/scape/entity-async")
+public class AsyncIntellectualEntities {
 
     private final ScapeMarshaller marshaller;
 
@@ -53,38 +53,31 @@ public class IntellectualEntityVersions {
     @InjectedSession
     private Session session;
 
-    public IntellectualEntityVersions() throws JAXBException {
+    /**
+     * Creates and initializes a new {@link AsyncIntellectualEntities}
+     *
+     * @throws javax.xml.bind.JAXBException
+     */
+    public AsyncIntellectualEntities() throws JAXBException {
         this.marshaller = ScapeMarshaller.newInstance();
     }
 
     /**
-     * Exposes an HTTP end point which lets a user retrieve a
-     * {@link VersionList} of an {@link IntellectualEntity}
+     * Exposes the HTTP POST endpoint to ingest an entity asynchronously
      * 
-     * @param entityId
-     *            the {@link IntellectualEntity}'s id
-     * @return a {@link Response} which maps to a corresponding HTTP response
-     *         containing a XML representation of the {@link VersionList}
+     * @param src
+     *            The {@link IntellectualEntity}'s METS representation
+     * @return A {@link Response} that maps to a corresponding HTTP response
+     *         code
      * @throws RepositoryException
+     *             If there was an issue queuing this {@link IntellectualEntity}
+     *             for an asynchronous ingest
      */
-    @GET
-    @Produces(MediaType.TEXT_XML)
-    @Path("{id}")
-    public Response retrieveVersionList(@PathParam("id")
-    final String entityId) throws RepositoryException {
-        final VersionList list = this.connectorService.fetchVersionList(session, entityId);
-        return Response.ok(new StreamingOutput() {
-
-            @Override
-            public void write(OutputStream output) throws IOException, WebApplicationException {
-                try {
-                    IntellectualEntityVersions.this.marshaller.serialize(list, output);
-                } catch (JAXBException e) {
-                    throw new IOException(e);
-                }
-            }
-        }).build();
-
+    @POST
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response ingestEntity(final InputStream src) throws RepositoryException {
+        String id = connectorService.queueEntityForIngest(this.session, src);
+        return Response.ok(id).build();
     }
 
 }

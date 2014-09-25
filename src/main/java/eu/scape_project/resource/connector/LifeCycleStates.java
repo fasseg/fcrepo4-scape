@@ -11,17 +11,17 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package eu.scape_project.resource;
+package eu.scape_project.resource.connector;
 
-import java.io.InputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 import javax.xml.bind.JAXBException;
 
 import org.fcrepo.http.commons.session.InjectedSession;
@@ -30,20 +30,20 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import eu.scape_project.model.IntellectualEntity;
+import eu.scape_project.model.LifecycleState;
 import eu.scape_project.service.ConnectorService;
 import eu.scape_project.util.ScapeMarshaller;
 
 /**
- * JAX-RS Resource for Intellectual Entities This implementation exposes the
- * /scape/entity-async endpoint as specified in the Connector API Documentation
+ * JAX-RS Resource for life cycle states
  * 
  * @author frank asseg
  * 
  */
 @Component
 @Scope("prototype")
-@Path("/scape/entity-async")
-public class AsyncIntellectualEntities {
+@Path("/scape/lifecycle")
+public class LifeCycleStates {
 
     private final ScapeMarshaller marshaller;
 
@@ -53,31 +53,39 @@ public class AsyncIntellectualEntities {
     @InjectedSession
     private Session session;
 
-    /**
-     * Creates and initializes a new {@link AsyncIntellectualEntities}
-     *
-     * @throws javax.xml.bind.JAXBException
-     */
-    public AsyncIntellectualEntities() throws JAXBException {
+    public LifeCycleStates() throws JAXBException {
         this.marshaller = ScapeMarshaller.newInstance();
     }
 
     /**
-     * Exposes the HTTP POST endpoint to ingest an entity asynchronously
+     * Exposes an HTTP end point to fetch the {@link LifecycleState} of an
+     * {@link IntellectualEntity}
      * 
-     * @param src
-     *            The {@link IntellectualEntity}'s METS representation
-     * @return A {@link Response} that maps to a corresponding HTTP response
-     *         code
+     * @param entityId
+     *            the {@link IntellectualEntity}'s id
+     * @return a {@link Response} which maps to a corresponding HTTP response,
+     *         containing a XML representation of the {@link LifecycleState}
      * @throws RepositoryException
-     *             If there was an issue queuing this {@link IntellectualEntity}
-     *             for an asynchronous ingest
+     *             if an error occurred while fetching the
+     *             {@link LifecycleState}
      */
-    @POST
+    @GET
+    @Path("{id}")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response ingestEntity(final InputStream src) throws RepositoryException {
-        String id = connectorService.queueEntityForIngest(this.session, src);
-        return Response.ok(id).build();
+    public Response retrieveLifeCycleState(@PathParam("id")
+    final String entityId) throws RepositoryException {
+        final LifecycleState state = connectorService.fetchLifeCycleState(this.session, entityId);
+        return Response.ok(new StreamingOutput() {
+
+            @Override
+            public void write(OutputStream output) throws IOException, WebApplicationException {
+                try {
+                    LifeCycleStates.this.marshaller.serialize(state, output);
+                } catch (JAXBException e) {
+                    throw new IOException(e);
+                }
+            }
+        }).build();
     }
 
 }

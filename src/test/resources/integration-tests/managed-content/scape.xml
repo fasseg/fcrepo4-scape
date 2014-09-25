@@ -14,7 +14,7 @@
     base-package="eu.scape_project.web.listener, eu.scape_project.resource" />
     
   <bean class="eu.scape_project.service.ConnectorService">
-    <property name="fedoraUrl" value="${scape.fcrepo.url:http://localhost:8080}" />
+    <property name="fedoraUrl" value="${scape.fcrepo.url:http://localhost:8092}" />
     <property name="referencedContent" value="false" />
   </bean>
 

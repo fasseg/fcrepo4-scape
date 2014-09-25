@@ -11,7 +11,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package integration;
+package integration.connector;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -38,10 +38,11 @@ import eu.scape_project.util.ScapeMarshaller;
 
 public class AbstractIT {
 
-    protected static final String SCAPE_URL =
-            "http://localhost:8080/scape";
+    public static final String PORT = (System.getProperty("test.port") != null) ? System.getProperty("test.port") : "8092";
 
-    protected static final String FEDORA_URL = "http://localhost:8080/";
+    public static final String SCAPE_URL = "http://localhost:" + PORT + "/scape";
+
+    public static final String FEDORA_URL = "http://localhost:" + PORT + "/";
 
     protected final DefaultHttpClient client = new DefaultHttpClient();
 

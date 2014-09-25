@@ -12,7 +12,7 @@
    limitations under the License.
  */
 
-package integration;
+package integration.connector;
 
 import static org.junit.Assert.*;
 

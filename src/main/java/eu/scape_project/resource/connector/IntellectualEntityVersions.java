@@ -11,7 +11,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package eu.scape_project.resource;
+package eu.scape_project.resource.connector;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -30,20 +30,20 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import eu.scape_project.model.IntellectualEntity;
-import eu.scape_project.model.LifecycleState;
+import eu.scape_project.model.VersionList;
 import eu.scape_project.service.ConnectorService;
 import eu.scape_project.util.ScapeMarshaller;
 
 /**
- * JAX-RS Resource for life cycle states
+ * JAX-RS Resource for Intellectual Entity Versions
  * 
  * @author frank asseg
  * 
  */
 @Component
 @Scope("prototype")
-@Path("/scape/lifecycle")
-public class LifeCycleStates {
+@Path("/scape/entity-version-list")
+public class IntellectualEntityVersions {
 
     private final ScapeMarshaller marshaller;
 
@@ -53,39 +53,38 @@ public class LifeCycleStates {
     @InjectedSession
     private Session session;
 
-    public LifeCycleStates() throws JAXBException {
+    public IntellectualEntityVersions() throws JAXBException {
         this.marshaller = ScapeMarshaller.newInstance();
     }
 
     /**
-     * Exposes an HTTP end point to fetch the {@link LifecycleState} of an
-     * {@link IntellectualEntity}
+     * Exposes an HTTP end point which lets a user retrieve a
+     * {@link VersionList} of an {@link IntellectualEntity}
      * 
      * @param entityId
      *            the {@link IntellectualEntity}'s id
-     * @return a {@link Response} which maps to a corresponding HTTP response,
-     *         containing a XML representation of the {@link LifecycleState}
+     * @return a {@link Response} which maps to a corresponding HTTP response
+     *         containing a XML representation of the {@link VersionList}
      * @throws RepositoryException
-     *             if an error occurred while fetching the
-     *             {@link LifecycleState}
      */
     @GET
+    @Produces(MediaType.TEXT_XML)
     @Path("{id}")
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response retrieveLifeCycleState(@PathParam("id")
+    public Response retrieveVersionList(@PathParam("id")
     final String entityId) throws RepositoryException {
-        final LifecycleState state = connectorService.fetchLifeCycleState(this.session, entityId);
+        final VersionList list = this.connectorService.fetchVersionList(session, entityId);
         return Response.ok(new StreamingOutput() {
 
             @Override
             public void write(OutputStream output) throws IOException, WebApplicationException {
                 try {
-                    LifeCycleStates.this.marshaller.serialize(state, output);
+                    IntellectualEntityVersions.this.marshaller.serialize(list, output);
                 } catch (JAXBException e) {
                     throw new IOException(e);
                 }
             }
         }).build();
+
     }
 
 }

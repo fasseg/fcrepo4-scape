@@ -62,6 +62,8 @@ public final class  ScapeRDFVocabulary {
 
     public static final String HAS_INGEST_STATE = "hasIngestState";
 
+    public static final String HAS_EXEC_STATE = "hasExecState";
+
     public static final String prefix(String property) {
         return SCAPE_PREFIX + ":" + property;
     }

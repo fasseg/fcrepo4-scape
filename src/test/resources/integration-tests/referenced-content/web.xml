@@ -9,7 +9,7 @@
 
     <context-param>
         <param-name>contextConfigLocation</param-name>
-        <param-value>classpath:integration-tests/referenced-content/repo.xml, classpath:integration-tests/referenced-content/rest.xml, classpath:integration-tests/referenced-content/eventing.xml, classpath:integration-tests/referenced-content/scape-connector.xml</param-value>
+        <param-value>classpath:integration-tests/referenced-content/repo.xml, classpath:integration-tests/referenced-content/rest.xml, classpath:integration-tests/referenced-content/eventing.xml, classpath:integration-tests/referenced-content/scape.xml</param-value>
     </context-param>
 
     <listener>

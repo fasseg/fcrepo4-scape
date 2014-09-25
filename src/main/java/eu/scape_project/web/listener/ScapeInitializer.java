@@ -153,8 +153,17 @@ public class ScapeInitializer implements AbstractResourceModelListener {
             queueItemType.setAbstract(false);
             queueItemType.getPropertyDefinitionTemplates().add(createSinglePropertyDefTemplate(session, mgr, prefix(HAS_INGEST_STATE), PropertyType.STRING));
 
+            // Create templates for the node types ...
+            final NodeTypeTemplate planType = mgr.createNodeTypeTemplate();
+            planType.setName("scape:plan");
+            planType.setDeclaredSuperTypeNames(new String[] {"fedora:resource", "fedora:object"});
+            planType.setMixin(true);
+            planType.setQueryable(true);
+            planType.setAbstract(false);
+            planType.getPropertyDefinitionTemplates().add(createMultiPropertyDefTemplate(session, mgr, prefix(HAS_EXEC_STATE), PropertyType.STRING));
+
             // and register them
-            mgr.registerNodeTypes(new NodeTypeDefinition[] { fileType, versionType, entityType, repType, queueType, bsType, metadataType, queueItemType }, true);
+            mgr.registerNodeTypes(new NodeTypeDefinition[]{fileType, versionType, entityType, repType, queueType, bsType, metadataType, queueItemType, planType}, true);
 
             /* make sure that the queue object exists for async ingests */
             this.objectService.createObject(session, ConnectorService.QUEUE_NODE).getNode().addMixin("scape:async-queue");
