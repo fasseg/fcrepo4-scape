@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mets:mets xmlns:fits="http://hul.harvard.edu/ois/xml/ns/fits/fits_output" xmlns:textmd="info:lc/xmlns/textmd-v3" xmlns:ns3="http://www.loc.gov/audioMD/" xmlns:marc="http://www.loc.gov/MARC21/slim" xmlns:mets="http://www.loc.gov/METS/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ns7="http://www.loc.gov/mix/v20" xmlns:vmd="http://www.loc.gov/videoMD/" xmlns:premis="info:lc/xmlns/premis-v2" xmlns:dc="http://purl.org/dc/elements/1.1/" ID="entity-1" OBJID="entity-1" PROFILE="scape">
+    <mets:metsHdr RECORDSTATUS="NEW"/>
+    <mets:dmdSec>
+        <mets:mdWrap>
+            <mets:xmlData>
+                <dc:dublin-core>
+                    <dc:title>Object 1</dc:title>
+                </dc:dublin-core>
+            </mets:xmlData>
+        </mets:mdWrap>
+    </mets:dmdSec>
+    <mets:amdSec>
+        <mets:techMD ID="MD-9a606702-6f8d-4421-9ccd-d27021011807">
+            <mets:mdWrap>
+                <mets:xmlData>
+                    <textmd:textMD>
+                        <textmd:encoding>
+                            <textmd:encoding_platform linebreak="LF"/>
+                        </textmd:encoding>
+                    </textmd:textMD>
+                </mets:xmlData>
+            </mets:mdWrap>
+        </mets:techMD>
+        <mets:techMD ID="MD-b979976d-f235-4a45-b306-af2de1c7fc35">
+            <mets:mdWrap>
+                <mets:xmlData>
+                    <textmd:textMD>
+                        <textmd:encoding>
+                            <textmd:encoding_platform linebreak="LF"/>
+                        </textmd:encoding>
+                    </textmd:textMD>
+                </mets:xmlData>
+            </mets:mdWrap>
+        </mets:techMD>
+        <mets:techMD ID="MD-b0dbb65b-849c-419b-a4a0-bfa48da967d1">
+            <mets:mdWrap>
+                <mets:xmlData>
+                    <textmd:textMD>
+                        <textmd:encoding>
+                            <textmd:encoding_platform linebreak="LF"/>
+                        </textmd:encoding>
+                    </textmd:textMD>
+                </mets:xmlData>
+            </mets:mdWrap>
+        </mets:techMD>
+        <mets:rightsMD ID="MD-cdb70b58-0169-46da-990c-5100c17909eb">
+            <mets:mdWrap>
+                <mets:xmlData>
+                    <premis:rights>
+                        <premis:rightsStatement>
+                            <premis:copyrightInformation>
+<premis:copyrightStatus>no copyright</premis:copyrightStatus>
+<premis:copyrightJurisdiction>de</premis:copyrightJurisdiction>
+                            </premis:copyrightInformation>
+                        </premis:rightsStatement>
+                    </premis:rights>
+                </mets:xmlData>
+            </mets:mdWrap>
+        </mets:rightsMD>
+        <mets:sourceMD ID="MD-42514ba4-4e1d-4487-83ad-8ea8767ca5e6">
+            <mets:mdWrap>
+                <mets:xmlData>
+                    <dc:dublin-core>
+                        <dc:title>Source object 1</dc:title>
+                    </dc:dublin-core>
+                </mets:xmlData>
+            </mets:mdWrap>
+        </mets:sourceMD>
+        <mets:digiprovMD ID="MD-5ce53707-74bb-4eaa-9a67-ca839ae008ed">
+            <mets:mdWrap>
+                <mets:xmlData>
+                    <premis:premis>
+                        <premis:event>
+                            <premis:eventType>INGEST</premis:eventType>
+                            <premis:eventDetail>inital ingest</premis:eventDetail>
+                            <premis:linkingAgentIdentifier xlink:role="CREATOR" xlink:title="Testman Testrevicz"/>
+                        </premis:event>
+                    </premis:premis>
+                </mets:xmlData>
+            </mets:mdWrap>
+        </mets:digiprovMD>
+    </mets:amdSec>
+    <mets:fileSec>
+        <mets:fileGrp>
+            <mets:file ID="file-1" SEQ="0" ADMID="MD-b979976d-f235-4a45-b306-af2de1c7fc35" MIMETYPE="image/png" >
+                <mets:FLocat xlink:href="http://www.scape-project.eu/wp-content/themes/medani/images/scape_logo.png" LOCTYPE="URL" TITLE="header_image"/>
+                <mets:stream ID="bitstream-1" ADMID="MD-b0dbb65b-849c-419b-a4a0-bfa48da967d1"/>
+            </mets:file>
+        </mets:fileGrp>
+    </mets:fileSec>
+    <mets:structMap>
+        <mets:div TYPE="Intellectual entity">
+            <mets:div ID="representation-1" ADMID="MD-9a606702-6f8d-4421-9ccd-d27021011807 MD-5ce53707-74bb-4eaa-9a67-ca839ae008ed MD-42514ba4-4e1d-4487-83ad-8ea8767ca5e6 MD-cdb70b58-0169-46da-990c-5100c17909eb" TYPE="Representation">
+                <mets:fptr FILEID="file-1"/>
+            </mets:div>
+        </mets:div>
+    </mets:structMap>
+</mets:mets>
