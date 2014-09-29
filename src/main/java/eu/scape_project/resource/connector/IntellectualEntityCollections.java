@@ -19,6 +19,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.ws.rs.*;
@@ -29,7 +30,6 @@ import javax.xml.bind.JAXBException;
 
 import eu.scape_project.service.ConnectorService;
 import org.apache.commons.io.IOUtils;
-import org.fcrepo.http.commons.session.InjectedSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -53,7 +53,7 @@ public class IntellectualEntityCollections {
     @Autowired
     private ConnectorService connectorService;
 
-    @InjectedSession
+    @Inject
     private Session session;
 
     public IntellectualEntityCollections() throws JAXBException {

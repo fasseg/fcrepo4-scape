@@ -19,6 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.inject.Inject;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.ws.rs.*;
@@ -33,7 +34,6 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.io.IOUtils;
-import org.fcrepo.http.commons.session.InjectedSession;
 import org.fcrepo.kernel.Datastream;
 import org.fcrepo.kernel.FedoraObject;
 import org.fcrepo.kernel.exception.InvalidChecksumException;
@@ -69,7 +69,7 @@ public class Plans {
 
     static final String PLAN_FOLDER = "objects/scape/plans/";
 
-    @InjectedSession
+    @Inject
     private Session session;
 
     @Autowired
@@ -107,7 +107,7 @@ public class Plans {
 
         /* create a top level object for the plan */
         final String path = PLAN_FOLDER + planId;
-        final FedoraObject plan = objectService.createObject(this.session, path);
+        final FedoraObject plan = objectService.findOrCreateObject(this.session, path);
         plan.getNode().addMixin("scape:plan");
 
         /*
@@ -157,8 +157,8 @@ public class Plans {
         // TODO: check the problems and throw an error if applicable
 
         /* add a datastream holding the plato XML data */
-        final Datastream ds = datastreamService.createDatastream(this.session, path + "/plato-xml", "text/xml", null,
-                new ByteArrayInputStream(sink.toByteArray()));
+        final Datastream ds = datastreamService.findOrCreateDatastream(this.session, path + "/plato-xml");
+        ds.getBinary().setContent(new ByteArrayInputStream(sink.toByteArray()), "text/xml", null, null, datastreamService.getStoragePolicyDecisionPoint());
 
         /* and persist the changes in fcrepo */
         this.session.save();
@@ -198,8 +198,8 @@ public class Plans {
     public Response retrievePlan(@PathParam("id")
     final String planId) throws RepositoryException {
         /* fetch the plan form the repository */
-        final Datastream ds = this.datastreamService.getDatastream(this.session, PLAN_FOLDER + planId + "/plato-xml");
-        return Response.ok(ds.getContent(), ds.getMimeType()).build();
+        final Datastream ds = this.datastreamService.findOrCreateDatastream(this.session, PLAN_FOLDER + planId + "/plato-xml");
+        return Response.ok(ds.getBinary().getContent(), ds.getBinary().getMimeType()).build();
     }
 
     /**
@@ -213,7 +213,7 @@ public class Plans {
     public Response deletePlan(@PathParam("id")
     final String planId) throws RepositoryException {
         final String path = "/" + PLAN_FOLDER + planId;
-        this.nodeService.deleteObject(this.session, path);
+        this.nodeService.getObject(this.session, path).delete();
         this.session.save();
         return Response.ok().build();
     }

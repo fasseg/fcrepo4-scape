@@ -19,6 +19,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.jcr.*;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
@@ -33,7 +34,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.xml.bind.JAXBException;
 
-import org.fcrepo.http.commons.session.InjectedSession;
 import org.fcrepo.kernel.services.DatastreamService;
 import org.fcrepo.kernel.services.NodeService;
 import org.fcrepo.kernel.services.ObjectService;
@@ -61,7 +61,7 @@ public class PlanList {
 
     public static final String PLAN_FOLDER = "objects/scape/plans/";
 
-    @InjectedSession
+    @Inject
     private Session session;
 
     @Autowired

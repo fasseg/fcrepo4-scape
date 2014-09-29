@@ -20,6 +20,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.*;
 
+import javax.inject.Inject;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.ws.rs.*;
@@ -29,7 +30,6 @@ import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBException;
 
-import org.fcrepo.http.commons.session.InjectedSession;
 import org.fcrepo.kernel.FedoraObject;
 import org.fcrepo.kernel.impl.rdf.SerializationUtils;
 import org.fcrepo.kernel.impl.rdf.impl.DefaultIdentifierTranslator;
@@ -63,7 +63,7 @@ import eu.scape_project.util.ScapeMarshaller;
 @Path("/scape/plan-execution-state")
 public class PlanExecutionStates {
 
-    @InjectedSession
+    @Inject
     private Session session;
 
     @Autowired
@@ -97,7 +97,7 @@ public class PlanExecutionStates {
         /* fetch the plan RDF from fedora */
         final String planUri = "/" + Plans.PLAN_FOLDER + planId;
         final FedoraObject plan =
-                this.objectService.getObject(this.session, planUri);
+                this.objectService.findOrCreateObject(this.session, planUri);
 
         /* get the relevant information from the RDF dataset */
         final IdentifierTranslator subjects = new DefaultIdentifierTranslator();
@@ -154,9 +154,9 @@ public class PlanExecutionStates {
         final String planPath = "/" + Plans.PLAN_FOLDER + planId;
         /* fetch the plan from the repository */
         final FedoraObject plan =
-                this.objectService.getObject(this.session, planPath);
+                this.objectService.findOrCreateObject(this.session, planPath);
 
-        final FedoraObject execState = this.objectService.createObject(this.session, planPath + "/" + UUID.randomUUID());
+        final FedoraObject execState = this.objectService.findOrCreateObject(this.session, planPath + "/" + UUID.randomUUID());
         final IdentifierTranslator subjects = new DefaultIdentifierTranslator();
         final String execStateUri = subjects.getSubject(execState.getNode().getPath()).getURI();
         final String planUri = subjects.getSubject(plan.getNode().getPath()).getURI();

@@ -19,6 +19,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.ws.rs.*;
@@ -28,7 +29,6 @@ import javax.ws.rs.core.StreamingOutput;
 
 import eu.scape_project.util.XmlDeclarationStrippingInputstream;
 import org.apache.commons.io.IOUtils;
-import org.fcrepo.http.commons.session.InjectedSession;
 import org.fcrepo.kernel.Datastream;
 import org.fcrepo.kernel.RdfLexicon;
 import org.fcrepo.kernel.impl.rdf.impl.DefaultIdentifierTranslator;
@@ -55,7 +55,7 @@ import com.hp.hpl.jena.rdf.model.StmtIterator;
 @Path("/scape/plan/sru")
 public class PlanSearch {
 
-    @InjectedSession
+    @Inject
     private Session session;
 
     @Autowired
@@ -127,26 +127,22 @@ public class PlanSearch {
             }
 
             private void writeSRURecord(OutputStream output, String uri) throws IOException {
-                try {
-                    final StringBuilder sru = new StringBuilder();
-                    final String planId = uri.substring((RdfLexicon.RESTAPI_NAMESPACE + Plans.PLAN_FOLDER).length() + 1);
-                    sru.append("<srw:record>");
-                    sru.append("<srw:recordPacking>string</srw:recordPacking>");
-                    sru.append("<srw:recordSchema>http://scapeproject.eu/schema/plato</srw:recordSchema>");
-                    sru.append("<srw:extraRecordData>");
-                    sru.append("<planId>").append(planId).append("</planId>");
-                    sru.append("</srw:extraRecordData>");
-                    sru.append("<srw:recordData>");
-                    output.write(sru.toString().getBytes());
-                    final Datastream plato = datastreamService.getDatastream(session, uri.substring(uri.indexOf('/')) + "/plato-xml");
-                    IOUtils.copy(new XmlDeclarationStrippingInputstream(plato.getContent()), output);
-                    sru.setLength(0);
-                    sru.append("</srw:recordData>");
-                    sru.append("</srw:record>");
-                    output.write(sru.toString().getBytes());
-                } catch (RepositoryException e) {
-                    throw new IOException(e);
-                }
+                final StringBuilder sru = new StringBuilder();
+                final String planId = uri.substring((RdfLexicon.RESTAPI_NAMESPACE + Plans.PLAN_FOLDER).length() + 1);
+                sru.append("<srw:record>");
+                sru.append("<srw:recordPacking>string</srw:recordPacking>");
+                sru.append("<srw:recordSchema>http://scapeproject.eu/schema/plato</srw:recordSchema>");
+                sru.append("<srw:extraRecordData>");
+                sru.append("<planId>").append(planId).append("</planId>");
+                sru.append("</srw:extraRecordData>");
+                sru.append("<srw:recordData>");
+                output.write(sru.toString().getBytes());
+                final Datastream plato = datastreamService.findOrCreateDatastream(session, uri.substring(uri.indexOf('/')) + "/plato-xml");
+                IOUtils.copy(new XmlDeclarationStrippingInputstream(plato.getBinary().getContent()), output);
+                sru.setLength(0);
+                sru.append("</srw:recordData>");
+                sru.append("</srw:record>");
+                output.write(sru.toString().getBytes());
             }
 
             private void writeSRUFooter(OutputStream output) throws IOException {

@@ -15,6 +15,7 @@ package eu.scape_project.resource.connector;
 
 import java.io.FileNotFoundException;
 
+import javax.inject.Inject;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.ws.rs.GET;
@@ -23,7 +24,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBException;
 
-import org.fcrepo.http.commons.session.InjectedSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -52,7 +52,7 @@ public class Files {
     @Autowired
     private ConnectorService connectorService;
 
-    @InjectedSession
+    @Inject
     private Session session;
 
     public Files() throws JAXBException {

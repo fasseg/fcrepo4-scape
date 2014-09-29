@@ -20,8 +20,13 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.util.*;
 
+import javax.annotation.PostConstruct;
 import javax.jcr.*;
 import javax.jcr.NodeIterator;
+import javax.jcr.nodetype.NodeTypeDefinition;
+import javax.jcr.nodetype.NodeTypeManager;
+import javax.jcr.nodetype.NodeTypeTemplate;
+import javax.jcr.nodetype.PropertyDefinitionTemplate;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
@@ -30,10 +35,13 @@ import javax.jcr.query.qom.QueryObjectModelFactory;
 import javax.jcr.query.qom.Source;
 import javax.xml.bind.JAXBException;
 
+import com.hp.hpl.jena.update.UpdateAction;
 import eu.scape_project.model.File;
+import eu.scape_project.rdf.ScapeRDFVocabulary;
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.Datastream;
 import org.fcrepo.kernel.FedoraObject;
+import org.fcrepo.kernel.RdfLexicon;
 import org.fcrepo.kernel.exception.InvalidChecksumException;
 import org.fcrepo.kernel.impl.rdf.SerializationUtils;
 import org.fcrepo.kernel.impl.rdf.impl.DefaultIdentifierTranslator;
@@ -41,6 +49,7 @@ import org.fcrepo.kernel.rdf.IdentifierTranslator;
 import org.fcrepo.kernel.services.DatastreamService;
 import org.fcrepo.kernel.services.NodeService;
 import org.fcrepo.kernel.services.ObjectService;
+import org.fcrepo.kernel.services.RepositoryService;
 import org.purl.dc.elements._1.ElementContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,6 +108,9 @@ public class ConnectorService {
     @Autowired
     private SessionFactory sessionFactory;
 
+    @Autowired
+    private RepositoryService repositoryService;
+
     private final java.io.File tempDirectory;
 
     /**
@@ -115,6 +127,132 @@ public class ConnectorService {
         if (!tempDirectory.exists()) {
             tempDirectory.mkdir();
         }
+    }
+
+    @PostConstruct
+    public void init() {
+        try {
+            final Session session = this.sessionFactory.getInternalSession();
+            /* make sure that the scape namespace is available in fcrepo */
+            final Dataset namespace = this.repositoryService.getNamespaceRegistryDataset(session, new DefaultIdentifierTranslator());
+            UpdateAction.parseExecute("INSERT {<" + ScapeRDFVocabulary.SCAPE_NAMESPACE + "> <" + RdfLexicon.HAS_NAMESPACE_PREFIX + "> \"scape\"} WHERE {}",
+                    namespace);
+
+            /* add the scape node mixin types */
+
+            // Get the node type manager ...
+            final NodeTypeManager mgr = session.getWorkspace().getNodeTypeManager();
+
+            // Create templates for the node types ...
+            final NodeTypeTemplate entityType = mgr.createNodeTypeTemplate();
+            entityType.setName("scape:intellectual-entity");
+            entityType.setDeclaredSuperTypeNames(new String[]{"fedora:resource", "fedora:object"});
+            entityType.setMixin(true);
+            entityType.setQueryable(true);
+            entityType.setAbstract(false);
+            entityType.getPropertyDefinitionTemplates().add(createMultiPropertyDefTemplate(session, mgr, prefix(HAS_REPRESENTATION), PropertyType.STRING));
+            entityType.getPropertyDefinitionTemplates().add(createMultiPropertyDefTemplate(session, mgr, prefix(HAS_VERSION), PropertyType.STRING));
+            entityType.getPropertyDefinitionTemplates().add(createSinglePropertyDefTemplate(session, mgr, prefix(HAS_CURRENT_VERSION), PropertyType.URI));
+            entityType.getPropertyDefinitionTemplates().add(createSinglePropertyDefTemplate(session, mgr, prefix(HAS_TYPE), PropertyType.STRING));
+            entityType.getPropertyDefinitionTemplates().add(createSinglePropertyDefTemplate(session, mgr, prefix(HAS_SCHEMA), PropertyType.STRING));
+
+            final NodeTypeTemplate versionType = mgr.createNodeTypeTemplate();
+            versionType.setName("scape:intellectual-entity-version");
+            versionType.setDeclaredSuperTypeNames(new String[] { "fedora:resource", "fedora:object" });
+            versionType.setMixin(true);
+            versionType.setQueryable(true);
+            versionType.setAbstract(false);
+            versionType.getPropertyDefinitionTemplates().add(createMultiPropertyDefTemplate(session, mgr, prefix(HAS_REPRESENTATION), PropertyType.STRING));
+
+            final NodeTypeTemplate repType = mgr.createNodeTypeTemplate();
+            repType.setName("scape:representation");
+            repType.setDeclaredSuperTypeNames(new String[] { "fedora:resource", "fedora:object" });
+            repType.setMixin(true);
+            repType.setQueryable(true);
+            repType.setAbstract(false);
+            repType.getPropertyDefinitionTemplates().add(createMultiPropertyDefTemplate(session, mgr, prefix(HAS_FILE), PropertyType.STRING));
+
+            final NodeTypeTemplate fileType = mgr.createNodeTypeTemplate();
+            fileType.setName("scape:file");
+            fileType.setDeclaredSuperTypeNames(new String[] { "fedora:resource", "fedora:object" });
+            fileType.setMixin(true);
+            fileType.setQueryable(true);
+            fileType.setAbstract(false);
+            fileType.getPropertyDefinitionTemplates().add(createMultiPropertyDefTemplate(session, mgr, prefix(HAS_BITSTREAM), PropertyType.STRING));
+
+            final NodeTypeTemplate bsType = mgr.createNodeTypeTemplate();
+            bsType.setName("scape:bitstream");
+            bsType.setDeclaredSuperTypeNames(new String[] { "fedora:resource", "fedora:object" });
+            bsType.setMixin(true);
+            bsType.setQueryable(true);
+            bsType.setAbstract(false);
+
+            final NodeTypeTemplate metadataType = mgr.createNodeTypeTemplate();
+            metadataType.setName("scape:metadata");
+            metadataType.setDeclaredSuperTypeNames(new String[] { "fedora:resource", "fedora:object" });
+            metadataType.setMixin(true);
+            metadataType.setQueryable(true);
+            metadataType.setAbstract(false);
+
+            final NodeTypeTemplate queueType = mgr.createNodeTypeTemplate();
+            queueType.setName("scape:async-queue");
+            queueType.setDeclaredSuperTypeNames(new String[]{"fedora:resource", "fedora:object"});
+            queueType.setMixin(true);
+            queueType.setQueryable(true);
+            queueType.setAbstract(false);
+            queueType.getPropertyDefinitionTemplates().add(createMultiPropertyDefTemplate(session, mgr, prefix(HAS_ITEM), PropertyType.STRING));
+
+            final NodeTypeTemplate queueItemType = mgr.createNodeTypeTemplate();
+            queueItemType.setName("scape:async-queue-item");
+            queueItemType.setDeclaredSuperTypeNames(new String[]{"fedora:resource", "fedora:object"});
+            queueItemType.setMixin(true);
+            queueItemType.setQueryable(true);
+            queueItemType.setAbstract(false);
+            queueItemType.getPropertyDefinitionTemplates().add(createSinglePropertyDefTemplate(session, mgr, prefix(HAS_INGEST_STATE), PropertyType.STRING));
+
+            // Create templates for the node types ...
+            final NodeTypeTemplate planType = mgr.createNodeTypeTemplate();
+            planType.setName("scape:plan");
+            planType.setDeclaredSuperTypeNames(new String[] {"fedora:resource", "fedora:object"});
+            planType.setMixin(true);
+            planType.setQueryable(true);
+            planType.setAbstract(false);
+            planType.getPropertyDefinitionTemplates().add(createMultiPropertyDefTemplate(session, mgr, prefix(HAS_EXEC_STATE), PropertyType.STRING));
+
+            // and register them
+            mgr.registerNodeTypes(new NodeTypeDefinition[]{fileType, versionType, entityType, repType, queueType, bsType, metadataType, queueItemType, planType}, true);
+
+            /* make sure that the queue object exists for async ingests */
+            this.objectService.findOrCreateObject(session, ConnectorService.QUEUE_NODE).getNode().addMixin("scape:async-queue");
+            session.save();
+        } catch (RepositoryException e) {
+            LOG.error("Error while setting up scape connector api", e);
+            throw new RuntimeException("Unable to setup scape on fedora");
+        }
+
+    }
+
+    private PropertyDefinitionTemplate createSinglePropertyDefTemplate(Session session, NodeTypeManager mgr, String name, int propertyType) throws RepositoryException {
+        PropertyDefinitionTemplate propDefn = mgr.createPropertyDefinitionTemplate();
+        propDefn.setName(name);
+        propDefn.setRequiredType(propertyType);
+        ValueFactory valueFactory = session.getValueFactory();
+        propDefn.setMultiple(false);
+        propDefn.setFullTextSearchable(false);
+        propDefn.setQueryOrderable(false);
+        return propDefn;
+    }
+
+    private PropertyDefinitionTemplate createMultiPropertyDefTemplate(final Session session, final NodeTypeManager mgr, final String name, final int propertyType)
+            throws RepositoryException {
+        PropertyDefinitionTemplate propDefn = mgr.createPropertyDefinitionTemplate();
+        propDefn.setName(name);
+        propDefn.setRequiredType(propertyType);
+        ValueFactory valueFactory = session.getValueFactory();
+        propDefn.setMultiple(true);
+        propDefn.setFullTextSearchable(false);
+        propDefn.setQueryOrderable(false);
+        return propDefn;
     }
 
     /**
@@ -196,7 +334,7 @@ public class ConnectorService {
         ie.identifier(new Identifier(id));
 
         final String entityPath = ENTITY_FOLDER + "/" + id;
-        final FedoraObject ieObject = this.objectService.getObject(session, entityPath);
+        final FedoraObject ieObject = this.objectService.findOrCreateObject(session, entityPath);
         final IdentifierTranslator subjects = new DefaultIdentifierTranslator();
         final String entityUri = subjects.getSubject(entityPath).getURI();
         final Dataset ds = ieObject.getPropertiesDataset(subjects);
@@ -208,7 +346,7 @@ public class ConnectorService {
             versionPath = getCurrentVersionPath(entityModel, entityUri);
         }
 
-        final FedoraObject versionObject = this.objectService.getObject(session, versionPath);
+        final FedoraObject versionObject = this.objectService.findOrCreateObject(session, versionPath);
         final Model versionModel = SerializationUtils.unifyDatasetModel(versionObject.getPropertiesDataset(subjects));
 
         /* fetch the ie's metadata form the repo */
@@ -272,7 +410,7 @@ public class ConnectorService {
         final String entityPath, dsPath;
         if (versionId == null) {
             entityPath = ENTITY_FOLDER + "/" + entityId;
-            final FedoraObject fo = this.objectService.getObject(session, entityPath);
+            final FedoraObject fo = this.objectService.findOrCreateObject(session, entityPath);
             final IdentifierTranslator subjects = new DefaultIdentifierTranslator();
             final String uri = subjects.getSubject(entityPath).getURI();
             final Model entityModel = SerializationUtils.unifyDatasetModel(fo.getPropertiesDataset(subjects));
@@ -282,9 +420,9 @@ public class ConnectorService {
             dsPath = entityPath + "/" + repId + "/" + fileId + "/DATA";
         }
 
-        final Datastream ds = this.datastreamService.getDatastream(session, dsPath);
+        final Datastream ds = this.datastreamService.findOrCreateDatastream(session, dsPath);
 
-        return new ContentTypeInputStream(ds.getMimeType(), ds.getContent());
+        return new ContentTypeInputStream(ds.getBinary().getMimeType(), ds.getBinary().getContent());
     }
 
     /**
@@ -301,7 +439,7 @@ public class ConnectorService {
      */
     public File fetchFile(final Session session, final String fileUri) throws RepositoryException {
         final File.Builder f = new File.Builder();
-        final FedoraObject fileObject = this.objectService.getObject(session, fileUri);
+        final FedoraObject fileObject = this.objectService.findOrCreateObject(session, fileUri);
         final IdentifierTranslator subjects = new DefaultIdentifierTranslator();
         final Model fileModel = SerializationUtils.unifyDatasetModel(fileObject.getPropertiesDataset(subjects));
         final Resource parent = fileModel.createResource(subjects.getSubject(fileObject.getPath()).getURI());
@@ -343,7 +481,7 @@ public class ConnectorService {
 
         String[] ids = path.substring(ENTITY_FOLDER.length() + 1).split("/");
         String entityPath = ENTITY_FOLDER + "/" + ids[0];
-        final FedoraObject entityObject = objectService.getObject(session, entityPath);
+        final FedoraObject entityObject = objectService.findOrCreateObject(session, entityPath);
         final IdentifierTranslator subjects = new DefaultIdentifierTranslator();
         final String uri = subjects.getSubject(entityPath).getURI();
 
@@ -358,8 +496,8 @@ public class ConnectorService {
             if (!this.datastreamService.exists(session, versionPath.toString())) {
                 throw new PathNotFoundException("No metadata available for " + path);
             }
-            final Datastream mdDs = this.datastreamService.getDatastream(session, versionPath.toString());
-            return this.marshaller.deserialize(mdDs.getContent());
+            final Datastream mdDs = this.datastreamService.findOrCreateDatastream(session, versionPath.toString());
+            return this.marshaller.deserialize(mdDs.getBinary().getContent());
         } catch (JAXBException e) {
             throw new RepositoryException(e);
         }
@@ -382,8 +520,8 @@ public class ConnectorService {
             if (!this.datastreamService.exists(session, path)) {
                 return null;
             }
-            final Datastream mdDs = this.datastreamService.getDatastream(session, path);
-            return this.marshaller.deserialize(mdDs.getContent());
+            final Datastream mdDs = this.datastreamService.findOrCreateDatastream(session, path);
+            return this.marshaller.deserialize(mdDs.getBinary().getContent());
         } catch (JAXBException e) {
             throw new RepositoryException(e);
         }
@@ -403,7 +541,7 @@ public class ConnectorService {
      */
     public Representation fetchRepresentation(final Session session, final String repPath) throws RepositoryException {
         final Representation.Builder rep = new Representation.Builder();
-        final FedoraObject repObject = this.objectService.getObject(session, repPath);
+        final FedoraObject repObject = this.objectService.findOrCreateObject(session, repPath);
         final IdentifierTranslator subjects = new DefaultIdentifierTranslator();
         final String uri = subjects.getSubject(repPath).getURI();
         final Model repModel = SerializationUtils.unifyDatasetModel(repObject.getPropertiesDataset(subjects));
@@ -451,7 +589,7 @@ public class ConnectorService {
         final IdentifierTranslator subjects = new DefaultIdentifierTranslator();
         if (versionId == null) {
             entityPath = ENTITY_FOLDER + "/" + entityId;
-            final FedoraObject fo = this.objectService.getObject(session, entityPath);
+            final FedoraObject fo = this.objectService.findOrCreateObject(session, entityPath);
             final String uri = subjects.getSubject(fo.getPath()).getURI();
             final Model entityModel = SerializationUtils.unifyDatasetModel(fo.getPropertiesDataset(subjects));
             repPath = this.getCurrentVersionPath(entityModel, uri) + "/" + repId;
@@ -476,7 +614,7 @@ public class ConnectorService {
      */
     public VersionList fetchVersionList(final Session session, final String entityId) throws RepositoryException {
         final String entityPath = ENTITY_FOLDER + "/" + entityId;
-        final FedoraObject entityObject = this.objectService.getObject(session, entityPath);
+        final FedoraObject entityObject = this.objectService.findOrCreateObject(session, entityPath);
         final IdentifierTranslator subjects = new DefaultIdentifierTranslator();
         final String uri = subjects.getSubject(entityObject.getPath()).getURI();
         final Model model = SerializationUtils.unifyDatasetModel(entityObject.getPropertiesDataset(subjects));
@@ -541,10 +679,10 @@ public class ConnectorService {
                 throw new ItemExistsException("Entity '" + entityId + "' already exists");
             }
 
-            final FedoraObject entityObject = objectService.createObject(session, entityPath);
+            final FedoraObject entityObject = objectService.findOrCreateObject(session, entityPath);
             entityObject.getNode().addMixin("scape:intellectual-entity");
 
-            final FedoraObject versionObject = objectService.createObject(session, versionPath);
+            final FedoraObject versionObject = objectService.findOrCreateObject(session, versionPath);
             versionObject.getNode().addMixin("scape:intellectual-entity-version");
 
             final IdentifierTranslator subjects = new DefaultIdentifierTranslator();
@@ -607,7 +745,7 @@ public class ConnectorService {
      */
     public void updateEntity(final Session session, final InputStream src, final String entityId) throws RepositoryException {
         final String entityPath = ENTITY_FOLDER + "/" + entityId;
-        final FedoraObject entityObject = this.objectService.getObject(session, entityPath);
+        final FedoraObject entityObject = this.objectService.findOrCreateObject(session, entityPath);
         final IdentifierTranslator subjects = new DefaultIdentifierTranslator();
         final String uri = subjects.getSubject(entityObject.getPath()).getURI();
         /* fetch the current version number from the repo */
@@ -622,7 +760,7 @@ public class ConnectorService {
             final IntellectualEntity ie = this.marshaller.deserialize(IntellectualEntity.class, src);
             final StringBuilder sparql = new StringBuilder("PREFIX scape: <" + SCAPE_NAMESPACE + "> ");
 
-            final FedoraObject versionObject = objectService.createObject(session, newVersionPath);
+            final FedoraObject versionObject = objectService.findOrCreateObject(session, newVersionPath);
 
             /* add the metadata datastream for descriptive metadata */
             if (ie.getDescriptive() != null) {
@@ -752,7 +890,7 @@ public class ConnectorService {
             /* copy the data to a temporary node */
             ByteArrayOutputStream sink = new ByteArrayOutputStream();
             this.marshaller.serialize(ie, sink);
-            final FedoraObject queue = this.objectService.getObject(session, QUEUE_NODE);
+            final FedoraObject queue = this.objectService.findOrCreateObject(session, QUEUE_NODE);
             if (this.objectService.exists(session,ENTITY_FOLDER + "/" + id)) {
                 throw new RepositoryException("Unable to queue item with id " + id
                         + " for ingest since an intellectual entity with that id already esists in the repository");
@@ -760,8 +898,9 @@ public class ConnectorService {
             if (this.datastreamService.exists(session, QUEUE_NODE + "/" + id)) {
                 throw new RepositoryException("Unable to queue item with id " + id + " for ingest since an item with that id is alread in the queue");
             }
-            final Node item = this.datastreamService.createDatastream(session, QUEUE_NODE + "/" + id, "text/xml", null, new ByteArrayInputStream(sink.toByteArray())).getNode();
-            item.addMixin("scape:async-queue-item");
+            final Datastream item = this.datastreamService.findOrCreateDatastream(session, QUEUE_NODE + "/" + id);
+            item.getBinary().setContent(new ByteArrayInputStream(sink.toByteArray()), "text/xml", null, null, datastreamService.getStoragePolicyDecisionPoint());
+            item.getContentNode().addMixin("scape:async-queue-item");
             /* update the ingest queue */
             final IdentifierTranslator subjects = new DefaultIdentifierTranslator();
             final String queueUri = subjects.getSubject(QUEUE_NODE).getURI();
@@ -792,7 +931,7 @@ public class ConnectorService {
      */
     public LifecycleState fetchLifeCycleState(Session session, String entityId) throws RepositoryException {
         /* check the async queue for the entity */
-        final FedoraObject queueObject = this.objectService.getObject(session, QUEUE_NODE);
+        final FedoraObject queueObject = this.objectService.findOrCreateObject(session, QUEUE_NODE);
         final IdentifierTranslator subjects = new DefaultIdentifierTranslator();
         final String uri = subjects.getSubject(queueObject.getPath()).getURI();
         final Model queueModel = SerializationUtils.unifyDatasetModel(queueObject.getPropertiesDataset(subjects));
@@ -800,7 +939,7 @@ public class ConnectorService {
         final List<String> asyncIds = this.getLiteralStrings(queueModel, parent, HAS_ITEM);
         final String itemPath = QUEUE_NODE + "/" + entityId;
         if (asyncIds.contains(subjects.getSubject(itemPath).getURI())) {
-            final String state = this.datastreamService.getDatastream(session, itemPath).getNode()
+            final String state = this.datastreamService.findOrCreateDatastream(session, itemPath).getNode()
                     .getProperties(prefix(HAS_INGEST_STATE))
                     .nextProperty()
                     .getString();
@@ -820,7 +959,7 @@ public class ConnectorService {
         /* check if the entity exists */
         if (this.objectService.exists(session, ENTITY_FOLDER + "/" + entityId)) {
             /* fetch the state form the entity itself */
-            final FedoraObject entityObject = this.objectService.getObject(session, ENTITY_FOLDER + "/" + entityId);
+            final FedoraObject entityObject = this.objectService.findOrCreateObject(session, ENTITY_FOLDER + "/" + entityId);
             final String entityUri = subjects.getSubject(entityObject.getPath()).getURI();
             final Model entityModel = SerializationUtils.unifyDatasetModel(entityObject.getPropertiesDataset(subjects));
             final Resource subject = entityModel.createResource(entityUri);
@@ -848,14 +987,14 @@ public class ConnectorService {
             return;
         }
         for (String item : getItemsFromQueue(session)) {
-            final Datastream ds = this.datastreamService.getDatastream(session, item);
+            final Datastream ds = this.datastreamService.findOrCreateDatastream(session, item);
             /* update the ingest state so that it won't get ingested twice */
             try {
                 final StringBuilder sparql = new StringBuilder("PREFIX scape: <http://scapeproject.eu/model#> ");
                 final String uri = subjects.getSubject(ds.getPath()).getURI();
                 sparql.append("INSERT DATA {<" + uri + "> " + prefix(HAS_INGEST_STATE) + " \"INGESTING\"};");
                 ds.updatePropertiesDataset(subjects, sparql.toString());
-                addEntity(session, ds.getContent(), item.substring(QUEUE_NODE.length() + 1));
+                addEntity(session, ds.getBinary().getContent(), item.substring(QUEUE_NODE.length() + 1));
                 deleteFromQueue(session, item);
             } catch (Exception e) {
                 final StringBuilder sparql = new StringBuilder("PREFIX scape: <http://scapeproject.eu/model#> ");
@@ -1010,19 +1149,19 @@ public class ConnectorService {
     }
 
     private void deleteFromQueue(final Session session, final String item) throws RepositoryException {
-        final FedoraObject queueObject = this.objectService.getObject(session, QUEUE_NODE);
+        final FedoraObject queueObject = this.objectService.findOrCreateObject(session, QUEUE_NODE);
         final IdentifierTranslator subjects = new DefaultIdentifierTranslator();
         final String uri = subjects.getSubject(queueObject.getPath()).getURI();
         final String itemUri = subjects.getSubject(item).getURI();
 
         final String sparql = "PREFIX scape: <http://scapeproject.eu/model#> DELETE {<" + uri + "> " + prefix(HAS_ITEM) + " \"" + itemUri + "\"} WHERE {}";
         queueObject.updatePropertiesDataset(subjects, sparql);
-        this.nodeService.deleteObject(session, item);
+        this.nodeService.getObject(session, item).delete();
         session.save();
     }
 
     private List<String> getItemsFromQueue(final Session session) throws RepositoryException {
-        final FedoraObject queueObject = this.objectService.getObject(session, QUEUE_NODE);
+        final FedoraObject queueObject = this.objectService.findOrCreateObject(session, QUEUE_NODE);
         final IdentifierTranslator subjects = new DefaultIdentifierTranslator();
         final String uri = subjects.getSubject(queueObject.getPath()).getURI();
         final Model queueModel = SerializationUtils.unifyDatasetModel(queueObject.getPropertiesDataset(subjects));
@@ -1032,7 +1171,7 @@ public class ConnectorService {
         while (it.hasNext()) {
             final String itemUri = it.nextStatement().getObject().asLiteral().getString();
             final String path = subjects.getPathFromSubject(queueModel.createResource(itemUri));
-            if (this.datastreamService.getDatastreamNode(session, path)
+            if (this.datastreamService.findOrCreateDatastream(session, path).getContentNode()
                     .getProperties(prefix(HAS_INGEST_STATE))
                     .nextProperty()
                     .getString()
@@ -1223,7 +1362,7 @@ public class ConnectorService {
         for (Representation rep : representations) {
             final String repId = (rep.getIdentifier() != null) ? rep.getIdentifier().getValue() : UUID.randomUUID().toString();
             final String repPath = versionPath + "/" + repId;
-            final FedoraObject repObject = objectService.createObject(session, repPath);
+            final FedoraObject repObject = objectService.findOrCreateObject(session, repPath);
             final String repUri = subjects.getSubject(repObject.getPath()).getURI();
             repUris.add(repUri);
             repObject.getNode().addMixin("scape:representation");
@@ -1265,7 +1404,7 @@ public class ConnectorService {
         for (BitStream bs : bitStreams) {
             final String bsId = (bs.getIdentifier() != null) ? bs.getIdentifier().getValue() : UUID.randomUUID().toString();
             final String bsPath = filePath + "/" + bsId;
-            final FedoraObject bsObject = this.objectService.createObject(session, bsPath);
+            final FedoraObject bsObject = this.objectService.findOrCreateObject(session, bsPath);
             bsObject.getNode().addMixin("scape:bitstream");
             final String uri = subjects.getSubject(bsObject.getPath()).getURI();
             final String fileUri = subjects.getSubject(filePath).getURI();
@@ -1300,7 +1439,7 @@ public class ConnectorService {
             }
 
             /* create a datastream in fedora for this file */
-            final FedoraObject fileObject = this.objectService.createObject(session, filePath);
+            final FedoraObject fileObject = this.objectService.findOrCreateObject(session, filePath);
             fileObject.getNode().addMixin("scape:file");
             final IdentifierTranslator subjects = new DefaultIdentifierTranslator();
             final String uri = subjects.getSubject(fileObject.getPath()).getURI();
@@ -1335,7 +1474,8 @@ public class ConnectorService {
                 /* load the actual binary data into the repo */
                 LOG.info("reading binary from {}", fileUri.toASCIIString());
                 try (final InputStream src = fileUri.toURL().openStream()) {
-                    final Node fileDs = this.datastreamService.createDatastream(session, filePath + "/DATA", f.getMimetype(), null, src).getContentNode();
+                    final Datastream fileDs = this.datastreamService.findOrCreateDatastream(session, filePath);
+                    fileDs.getBinary().setContent(src, f.getMimetype(), null, null, datastreamService.getStoragePolicyDecisionPoint());
                 } catch (IOException | InvalidChecksumException e) {
                     throw new RepositoryException(e);
                 }
@@ -1370,7 +1510,8 @@ public class ConnectorService {
                 }
             }).start();
 
-            final Datastream ds = datastreamService.createDatastream(session, path, "text/xml", null, dcSrc);
+            final Datastream ds = datastreamService.findOrCreateDatastream(session, path);
+            ds.getBinary().setContent(dcSrc, "text/xml", null, null, datastreamService.getStoragePolicyDecisionPoint());
             final Node desc = ds.getNode();
             desc.addMixin("scape:metadata");
 

@@ -16,6 +16,7 @@ package eu.scape_project.resource.connector;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import javax.inject.Inject;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.ws.rs.*;
@@ -24,7 +25,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.xml.bind.JAXBException;
 
-import org.fcrepo.http.commons.session.InjectedSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -50,7 +50,7 @@ public class IntellectualEntityVersions {
     @Autowired
     private ConnectorService connectorService;
 
-    @InjectedSession
+    @Inject
     private Session session;
 
     public IntellectualEntityVersions() throws JAXBException {

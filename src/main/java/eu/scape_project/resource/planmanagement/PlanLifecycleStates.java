@@ -14,6 +14,7 @@
 
 package eu.scape_project.resource.planmanagement;
 
+import javax.inject.Inject;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.ws.rs.GET;
@@ -26,7 +27,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBException;
 
-import org.fcrepo.http.commons.session.InjectedSession;
 import org.fcrepo.kernel.FedoraObject;
 import org.fcrepo.kernel.impl.rdf.SerializationUtils;
 import org.fcrepo.kernel.impl.rdf.impl.DefaultIdentifierTranslator;
@@ -52,7 +52,7 @@ import com.hp.hpl.jena.rdf.model.RDFNode;
 @Path("/scape/plan-state")
 public class PlanLifecycleStates {
 
-    @InjectedSession
+    @Inject
     private Session session;
 
     @Autowired
@@ -78,7 +78,7 @@ public class PlanLifecycleStates {
     UriInfo uriInfo) throws RepositoryException {
         /* fetch the plan RDF from fedora */
         final String planUri = "/" + Plans.PLAN_FOLDER + planId;
-        final FedoraObject plan = this.objectService.getObject(this.session, planUri);
+        final FedoraObject plan = this.objectService.findOrCreateObject(this.session, planUri);
 
         /* get the relevant information from the RDF dataset */
         final IdentifierTranslator subjects = new DefaultIdentifierTranslator();        final Dataset data = plan.getPropertiesDataset(subjects);
@@ -105,7 +105,7 @@ public class PlanLifecycleStates {
     String state) throws RepositoryException, JAXBException{
         /* fetch the plan RDF from fedora */
         final String planPath = "/" + Plans.PLAN_FOLDER + planId;
-        final FedoraObject plan = this.objectService.getObject(this.session, planPath);
+        final FedoraObject plan = this.objectService.findOrCreateObject(this.session, planPath);
 
         if (!state.startsWith("ENABLED:") && !state.equals("ENABLED") && !state.startsWith("DISABLED:") && !state.equals("DISABLED")) {
             throw new RepositoryException("Illegal state: '" + state + "' only one of [ENABLED:<details>,DISABLED:<details>] is allowed");
