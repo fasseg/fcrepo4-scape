@@ -31,6 +31,8 @@
         <property name="metadataFormats">
             <map>
                 <entry key="oai_dc" value-ref="oaiDcFormat"/>
+                <entry key="premis-full-v2" value-ref="premisFullV2" />
+                <entry key="premis-event-v2" value-ref="premisEventV2" />
             </map>
         </property>
     </bean>
@@ -40,6 +42,20 @@
         <property name="schemaUrl" value="http://www.openarchives.org/OAI/2.0/oai_dc.xsd"/>
         <property name="namespace" value="http://www.openarchives.org/OAI/2.0/oai_dc/"/>
         <property name="propertyName" value="http://fedora.info/definitions/v4/config#hasOaiDCRecord"/>
+    </bean>
+
+    <bean name="premisEventV2" class="org.fcrepo.oai.MetadataFormat">
+        <property name="prefix" value="premis-event-v2"/>
+        <property name="schemaUrl" value="http://www.loc.gov/standards/premis/premis.xsd"/>
+        <property name="namespace" value="info:lc/xmlns/premis-v2"/>
+        <property name="propertyName" value="http://fedora.info/definitions/v4/config#hasPremisEventV2Record"/>
+    </bean>
+
+    <bean name="premisFullV2" class="org.fcrepo.oai.MetadataFormat">
+        <property name="prefix" value="premis-full-v2"/>
+        <property name="schemaUrl" value="http://www.loc.gov/standards/premis/premis.xsd"/>
+        <property name="namespace" value="info:lc/xmlns/premis-v2"/>
+        <property name="propertyName" value="http://fedora.info/definitions/v4/config#hasPremisFullV2Record"/>
     </bean>
 
     <task:scheduler id="taskScheduler"/>
