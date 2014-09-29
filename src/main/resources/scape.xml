@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+  http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
+  http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+    <context:property-placeholder/>
+
+    <context:annotation-config/>
+
+    <context:component-scan
+            base-package="eu.scape_project.web.listener, eu.scape_project.resource"/>
+
+    <bean class="eu.scape_project.service.ConnectorService">
+        <property name="fedoraUrl" value="${scape.fcrepo.url:http://localhost:8092}"/>
+        <property name="referencedContent" value="false"/>
+    </bean>
+
+    <bean name="oaiProviderService" class="org.fcrepo.oai.service.OAIProviderService">
+        <property name="identifyPath" value="/oai_identify"/>
+        <property name="maxListSize" value="5"/>
+        <property name="setsEnabled" value="true"/>
+        <property name="setsRootPath" value="/oai_setspec"/>
+        <property name="propertyIsPartOfSet" value="http://fedora.info/definitions/v4/config#isPartOfOAISet"/>
+        <property name="propertyHasSets" value="http://fedora.info/definitions/v4/config#hasOAISet"/>
+        <property name="propertySetName" value="http://fedora.info/definitions/v4/config#hasOAISetName"/>
+        <property name="propertyHasSetSpec" value="http://fedora.info/definitions/v4/config#hasOAISetSpec"/>
+        <property name="metadataFormats">
+            <map>
+                <entry key="oai_dc" value-ref="oaiDcFormat"/>
+                <entry key="premis-full-v2" value-ref="premisFullV2" />
+                <entry key="premis-event-v2" value-ref="premisEventV2" />
+            </map>
+        </property>
+    </bean>
+
+    <bean name="oaiDcFormat" class="org.fcrepo.oai.MetadataFormat">
+        <property name="prefix" value="oai_dc"/>
+        <property name="schemaUrl" value="http://www.openarchives.org/OAI/2.0/oai_dc.xsd"/>
+        <property name="namespace" value="http://www.openarchives.org/OAI/2.0/oai_dc/"/>
+        <property name="propertyName" value="http://fedora.info/definitions/v4/config#hasOaiDCRecord"/>
+    </bean>
+
+    <bean name="premisEventV2" class="org.fcrepo.oai.MetadataFormat">
+        <property name="prefix" value="premis-event-v2"/>
+        <property name="schemaUrl" value="http://www.loc.gov/standards/premis/premis.xsd"/>
+        <property name="namespace" value="info:lc/xmlns/premis-v2"/>
+        <property name="propertyName" value="http://fedora.info/definitions/v4/config#hasPremisEventV2Record"/>
+    </bean>
+
+    <bean name="premisFullV2" class="org.fcrepo.oai.MetadataFormat">
+        <property name="prefix" value="premis-full-v2"/>
+        <property name="schemaUrl" value="http://www.loc.gov/standards/premis/premis.xsd"/>
+        <property name="namespace" value="info:lc/xmlns/premis-v2"/>
+        <property name="propertyName" value="http://fedora.info/definitions/v4/config#hasPremisFullV2Record"/>
+    </bean>
+
+</beans>
