@@ -196,7 +196,6 @@ OR download a prepackaged WAR from https://wiki.duraspace.org/display/FF/Downloa
 ```bash
 $ git clone https://github.com/futures/fcrepo4.git
 $ cd fcrepo4
-$ git checkout fcrepo-4.0.0-scape
 $ mvn clean install
 ```
 
@@ -224,17 +223,17 @@ $ mvn clean install
 Checkout and build/package the Connector API implementation from https://github.com/fasseg/fcrepo4-scape
 
 ```bash
-$ git clone https://github.com/openplanets/scape-fcrepo4-connector.git
-$ cd scape-fcrepo4-connector
+$ git clone https://github.com/fasseg/fcrepo4-scape.git
+$ cd fcrepo4-scape
 $ mvn clean compile package
 ```	
 
 #### 5. Install the JAR files
 
-Copy the required JAR files from the data model and the Connector API to the Fedora 4 Webapp
+Copy the required JAR files from the data model and the API to the Fedora 4 Webapp
 
 ```bash
-$ cp scape-fcrepo4-connector/target/scape-fcrepo4-connector-{VERSION}.jar {TOMCAT_HOME}/webapps/fcrepo/WEB-INF/lib/
+$ cp fcrepo4-scape/target/fcrepo4-scape-{VERSION}.jar {TOMCAT_HOME}/webapps/fcrepo/WEB-INF/lib/
 $ cp scape-platform-datamodel/target/scape-platform-datamodel-{VERSION}.jar {TOMCAT_HOME}/webapps/fcrepo/WEB-INF/lib/
 ```
 	
@@ -271,5 +270,3 @@ $ {TOMCAT_HOME}/bin/catalina.sh run
 Notes:
 mvn install:install-file -Dfile=/home/ruckus/Downloads/pairtree-1.1.1.jar -DartifactId=pairtree -Dversion=1.1.1 -DgroupId=gov.loc -Dpackaging=jar
 http://sourceforge.net/projects/loc-xferutils/files/loc-pairtree-java-library/pairtree-1.1.1.jar/download
-
-
