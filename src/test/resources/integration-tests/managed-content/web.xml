@@ -22,7 +22,7 @@
         <servlet-class>com.sun.jersey.spi.spring.container.servlet.SpringServlet</servlet-class>
         <init-param>
             <param-name>com.sun.jersey.config.property.packages</param-name>
-            <param-value>org.fcrepo.http,eu.scape_project.web.listener, eu.scape_project.resource </param-value>
+            <param-value>org.fcrepo.http,eu.scape_project.web.listener, eu.scape_project.resource, org.fcrepo.oai.http </param-value>
         </init-param>
         <init-param>
             <param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>

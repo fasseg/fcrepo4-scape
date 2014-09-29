@@ -1,25 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
-  xmlns:task="http://www.springframework.org/schema/task" xmlns:util="http://www.springframework.org/schema/util"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
   http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
-  http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+  http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
-  <context:property-placeholder />
-  
-  <context:annotation-config />
+    <context:property-placeholder/>
 
-  <context:component-scan
-    base-package="eu.scape_project.web.listener, eu.scape_project.resource" />
-    
-  <bean class="eu.scape_project.service.ConnectorService">
-    <property name="fedoraUrl" value="${scape.fcrepo.url:http://localhost:8092}" />
-    <property name="referencedContent" value="false" />
-  </bean>
+    <context:annotation-config/>
 
-  <task:scheduler id="taskScheduler" />
-  <task:executor id="taskExecutor" pool-size="1" />
-  <task:annotation-driven executor="taskExecutor" scheduler="taskScheduler" />
+    <context:component-scan
+            base-package="eu.scape_project.web.listener, eu.scape_project.resource"/>
+
+    <bean class="eu.scape_project.service.ConnectorService">
+        <property name="fedoraUrl" value="${scape.fcrepo.url:http://localhost:8092}"/>
+        <property name="referencedContent" value="false"/>
+    </bean>
+
+    <bean name="oaiProviderService" class="org.fcrepo.oai.service.OAIProviderService">
+        <property name="identifyPath" value="/oai/identify"/>
+        <property name="maxListSize" value="5"/>
+        <property name="setsEnabled" value="true"/>
+        <property name="setsRootPath" value="/oai/setspec"/>
+        <property name="propertyIsPartOfSet" value="http://fedora.info/definitions/v4/config#isPartOfOAISet"/>
+        <property name="propertyHasSets" value="http://fedora.info/definitions/v4/config#hasOAISet"/>
+        <property name="propertySetName" value="http://fedora.info/definitions/v4/config#hasOAISetName"/>
+        <property name="propertyHasSetSpec" value="http://fedora.info/definitions/v4/config#hasOAISetSpec"/>
+        <property name="metadataFormats">
+            <map>
+                <entry key="oai_dc" value-ref="oaiDcFormat"/>
+            </map>
+        </property>
+    </bean>
+
+    <bean name="oaiDcFormat" class="org.fcrepo.oai.MetadataFormat">
+        <property name="prefix" value="oai_dc"/>
+        <property name="schemaUrl" value="http://www.openarchives.org/OAI/2.0/oai_dc.xsd"/>
+        <property name="namespace" value="http://www.openarchives.org/OAI/2.0/oai_dc/"/>
+        <property name="propertyName" value="http://fedora.info/definitions/v4/config#hasOaiDCRecord"/>
+    </bean>
+
+    <task:scheduler id="taskScheduler"/>
+    <task:executor id="taskExecutor" pool-size="1"/>
+    <task:annotation-driven executor="taskExecutor" scheduler="taskScheduler"/>
 
 </beans>
