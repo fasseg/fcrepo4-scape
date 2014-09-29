@@ -185,8 +185,7 @@ _If you're not sure you want to do this by yourself you can download a prepackag
 [SCAPE Fcrepo 4 War](https://drive.google.com/file/d/0B5nd_qlYdcqyM0pNbmJrSzh1dW8/edit?usp=sharing)
 
 Since Fedora 4 is in active development and therefore the APIs used are not yet finalized, this project might not run on an arbitrary version of Fedora 4.
-A version fcrepo-4.0.0-scape has therefore been tagged which is compatible with the current implementations:
-https://github.com/futures/fcrepo4/tree/fcrepo-4.0.0-scape
+
 
 
 #### 1. Get Fedora 4
