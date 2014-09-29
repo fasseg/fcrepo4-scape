@@ -18,6 +18,7 @@ package integration.report;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -34,6 +35,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.bind.*;
 import javax.xml.namespace.QName;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 
 import static org.junit.Assert.assertEquals;
@@ -75,7 +77,7 @@ public abstract class ReportIT {
             StringWriter data = new StringWriter();
             marshaller.marshal(new JAXBElement<IdentifyType>(new QName("Identify"), IdentifyType.class, id), data);
             post.setEntity(new StringEntity(data.toString()));
-            post.addHeader("Content-Type","application/octet-stream");
+            post.addHeader("Content-Type", "application/octet-stream");
             post.addHeader("Slug", "oai_identify");
             try {
                 HttpResponse resp = this.client.execute(post);
@@ -123,4 +125,44 @@ public abstract class ReportIT {
         HttpGet get = new HttpGet(url.toString());
         return this.client.execute(get);
     }
+
+    private void createOaiDcObject(String oaiDcId, InputStream src) throws Exception {
+        HttpPost post = new HttpPost(serverAddress + "/");
+        post.addHeader("Slug", oaiDcId);
+        post.addHeader("Content-Type", "application/octet-stream");
+        post.setEntity(new InputStreamEntity(src));
+        HttpResponse resp = this.client.execute(post);
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        post.releaseConnection();
+    }
+
+    protected void createFedoraObjectWithOaiRecord(String id, String oaiRecordId, String set, InputStream src)
+            throws Exception {
+        if (oaiRecordId != null && src != null) {
+            createOaiDcObject(oaiRecordId, src);
+        }
+
+        // create the Fedora Object
+        HttpPost post = new HttpPost(serverAddress + "/");
+        post.addHeader("Slug", id);
+
+        if (oaiRecordId != null) {
+            StringBuilder sparql = new StringBuilder("INSERT {")
+                    .append("<> ")
+                    .append("<http://fedora.info/definitions/v4/config#hasOaiDCRecord> ")
+                    .append("<").append(serverAddress).append("/").append(oaiRecordId).append("> . ");
+            if (set != null && !set.isEmpty()) {
+                sparql.append("<> ")
+                        .append("<http://fedora.info/definitions/v4/config#isPartOfOAISet> ")
+                        .append("\"").append(set).append("\" .");
+            }
+            sparql.append("} WHERE {}");
+            post.setEntity(new StringEntity(sparql.toString()));
+            post.addHeader("Content-Type", "application/sparql-update");
+        }
+        HttpResponse resp = this.client.execute(post);
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        post.releaseConnection();
+    }
+
 }
