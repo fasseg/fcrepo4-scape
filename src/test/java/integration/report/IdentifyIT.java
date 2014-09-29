@@ -33,7 +33,6 @@ public class IdentifyIT extends ReportIT{
     public void testIdentify() throws Exception {
         HttpResponse resp = getOAIPMHResponse(VerbType.IDENTIFY.value(), null, null, null, null, null);
         assertEquals(200, resp.getStatusLine().getStatusCode());
-        System.out.println(EntityUtils.toString(resp.getEntity()));
         OAIPMHtype oaipmh =
                 ((JAXBElement<OAIPMHtype>) this.unmarshaller.unmarshal(resp.getEntity().getContent())).getValue();
         assertEquals(0, oaipmh.getError().size());

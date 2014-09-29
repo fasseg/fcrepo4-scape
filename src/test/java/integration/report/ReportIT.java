@@ -40,7 +40,7 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"/integration-tests/managed-content/test-container.xml"})
-public class ReportIT {
+public abstract class ReportIT {
     protected final Logger logger;
 
     protected final CloseableHttpClient client = HttpClients.createDefault();
@@ -71,10 +71,12 @@ public class ReportIT {
             id.setRepositoryName("Fedora 4 Test Instance");
             id.setBaseURL(serverAddress);
 
-            HttpPost post = new HttpPost(serverAddress + "/oai/identify/fcr:content");
+            HttpPost post = new HttpPost(serverAddress);
             StringWriter data = new StringWriter();
             marshaller.marshal(new JAXBElement<IdentifyType>(new QName("Identify"), IdentifyType.class, id), data);
             post.setEntity(new StringEntity(data.toString()));
+            post.addHeader("Content-Type","application/octet-stream");
+            post.addHeader("Slug", "oai_identify");
             try {
                 HttpResponse resp = this.client.execute(post);
                 assertEquals(201, resp.getStatusLine().getStatusCode());
@@ -85,7 +87,7 @@ public class ReportIT {
     }
 
     protected boolean defaultIdentityResponseExists() throws IOException {
-        HttpGet get = new HttpGet(serverAddress + "/oai/identify/fcr:content");
+        HttpGet get = new HttpGet(serverAddress + "/oai_identify/fcr:content");
         try {
             HttpResponse resp = this.client.execute(get);
             return resp.getStatusLine().getStatusCode() == 200;
