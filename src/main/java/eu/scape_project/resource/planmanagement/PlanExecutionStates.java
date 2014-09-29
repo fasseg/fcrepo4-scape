@@ -111,14 +111,16 @@ public class PlanExecutionStates {
         List<PlanExecutionState> states = new ArrayList<>();
         while (execs.hasNext()) {
             final Resource res = rdfModel.createResource(execs.next().getObject().asLiteral().getString());
-            final String state =
-                    rdfModel.listStatements(
-                            res,
-                            rdfModel.getProperty("http://scapeproject.eu/model#hasExecutionState"),
-                            (RDFNode) null).next().getObject().asLiteral()
+            final Model stateModel = SerializationUtils.unifyDatasetModel(this.nodeService.getObject(session, subjects.getPathFromSubject(res)).getPropertiesDataset(subjects));
+
+            final StmtIterator stmtIterator = stateModel.listStatements(res,rdfModel.getProperty("http://scapeproject.eu/model#hasExecutionState"),(RDFNode) null);
+            if (!stmtIterator.hasNext()) {
+                throw new RepositoryException("No execution state for plan " + planId + " could be found");
+            }
+            final String state = stmtIterator.next().getObject().asLiteral()
                             .getString();
             final long timestamp = Long.parseLong(
-                    rdfModel.listStatements(
+                    stateModel.listStatements(
                             res,
                             rdfModel.getProperty("http://scapeproject.eu/model#hasTimeStamp"),
                             (RDFNode) null).next().getObject().asLiteral()
