@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 import javax.xml.bind.JAXBElement;
 
+import eu.scape_project.model.TestUtil;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.http.HttpResponse;
 import org.junit.Test;
@@ -56,6 +57,7 @@ public class ListIdentifiersIT extends ReportIT {
 
     @Test
     public void testListPremisFullIdentifiers() throws Exception {
+        createEntity(TestUtil.createTestEntity(RandomStringUtils.randomAlphabetic(16)));
         HttpResponse resp = getOAIPMHResponse(VerbType.LIST_IDENTIFIERS.value(), null, "premis-full-v2", null, null, null);
         assertEquals(200, resp.getStatusLine().getStatusCode());
         OAIPMHtype oaipmh =

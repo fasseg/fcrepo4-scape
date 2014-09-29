@@ -15,13 +15,18 @@
 */
 package integration.report;
 
+import eu.scape_project.model.IntellectualEntity;
+import eu.scape_project.model.TestUtil;
+import eu.scape_project.util.ScapeMarshaller;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.junit.runner.RunWith;
 import org.openarchives.oai._2.IdentifyType;
 import org.openarchives.oai._2.OAIPMHtype;
@@ -34,11 +39,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import javax.annotation.PostConstruct;
 import javax.xml.bind.*;
 import javax.xml.namespace.QName;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"/integration-tests/managed-content/test-container.xml"})
@@ -55,11 +59,14 @@ public abstract class ReportIT {
 
     protected Marshaller marshaller;
 
+    protected ScapeMarshaller scapeMarshaller;
+
     public ReportIT() {
         this.logger = LoggerFactory.getLogger(this.getClass());
         try {
             this.marshaller = JAXBContext.newInstance(IdentifyType.class).createMarshaller();
             this.unmarshaller = JAXBContext.newInstance(OAIPMHtype.class).createUnmarshaller();
+            this.scapeMarshaller = ScapeMarshaller.newInstance();
         } catch (JAXBException e) {
             throw new RuntimeException("Unable to create JAX-B context");
         }
@@ -133,6 +140,23 @@ public abstract class ReportIT {
         post.setEntity(new InputStreamEntity(src));
         HttpResponse resp = this.client.execute(post);
         assertEquals(201, resp.getStatusLine().getStatusCode());
+        post.releaseConnection();
+    }
+
+    protected void createEntity(IntellectualEntity ie) throws IOException {
+        HttpPost post = new HttpPost(serverAddress + "/scape/entity");
+        ByteArrayOutputStream sink = new ByteArrayOutputStream();
+        try {
+            this.scapeMarshaller.serialize(ie, sink);
+        } catch (JAXBException e) {
+            throw new IOException(e);
+        }
+        post.setEntity(new InputStreamEntity(new ByteArrayInputStream(sink
+                .toByteArray()), sink.size(), ContentType.TEXT_XML));
+        HttpResponse resp = this.client.execute(post);
+        assertEquals(201, resp.getStatusLine().getStatusCode());
+        String id = EntityUtils.toString(resp.getEntity());
+        assertTrue(id.length() > 0);
         post.releaseConnection();
     }
 
