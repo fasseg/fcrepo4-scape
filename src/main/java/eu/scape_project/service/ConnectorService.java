@@ -1382,6 +1382,8 @@ public class ConnectorService {
             if (rep.getProvenance() != null) {
                 addMetadata(session, rep.getProvenance(), repPath + "/PROVENANCE");
                 sparql.append("INSERT DATA {<" + repUri + "> <http://fedora.info/definitions/v4/config#hasPremisFullV2Record> <" + fedoraUrl + repObject.getPath() + "/PROVENANCE>};");
+                sparql.append("INSERT DATA {<" + repUri + "> <http://fedora.info/definitions/v4/config#hasPremisEventV2Record> <" + fedoraUrl + repObject.getPath() + "/PROVENANCE>};");
+
             }
 
             /* add all the files */

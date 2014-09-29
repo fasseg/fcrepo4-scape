@@ -45,6 +45,7 @@ public class ListIdentifiersIT extends ReportIT {
 
     @Test
     public void testListPremisEventIdentifiers() throws Exception {
+        createEntity(TestUtil.createTestEntity(RandomStringUtils.randomAlphabetic(16)));
         HttpResponse resp = getOAIPMHResponse(VerbType.LIST_IDENTIFIERS.value(), null, "premis-event-v2", null, null, null);
         assertEquals(200, resp.getStatusLine().getStatusCode());
         OAIPMHtype oaipmh =
