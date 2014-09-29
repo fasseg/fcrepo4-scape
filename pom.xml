@@ -26,12 +26,12 @@
         </dependency>
         <dependency>
             <groupId>org.fcrepo</groupId>
-            <artifactId>fcrepo-kernel-impl</artifactId>
+            <artifactId>fcrepo-http-commons</artifactId>
             <version>${fcrepo.version}</version>
         </dependency>
         <dependency>
             <groupId>org.fcrepo</groupId>
-            <artifactId>fcrepo-http-commons</artifactId>
+            <artifactId>fcrepo-kernel-impl</artifactId>
             <version>${fcrepo.version}</version>
         </dependency>
         <dependency>

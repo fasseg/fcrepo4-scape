@@ -35,9 +35,6 @@ import javax.jcr.query.qom.QueryObjectModelFactory;
 import javax.jcr.query.qom.Source;
 import javax.xml.bind.JAXBException;
 
-import com.hp.hpl.jena.update.UpdateAction;
-import eu.scape_project.model.File;
-import eu.scape_project.rdf.ScapeRDFVocabulary;
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.Datastream;
 import org.fcrepo.kernel.FedoraObject;
@@ -61,10 +58,13 @@ import com.google.books.gbs.GbsType;
 import com.hp.hpl.jena.query.Dataset;
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.update.UpdateAction;
 
 import edu.harvard.hul.ois.xml.ns.fits.fits_output.Fits;
 import eu.scape_project.model.*;
+import eu.scape_project.model.File;
 import eu.scape_project.model.LifecycleState.State;
+import eu.scape_project.rdf.ScapeRDFVocabulary;
 import eu.scape_project.util.ContentTypeInputStream;
 import eu.scape_project.util.ScapeMarshaller;
 import gov.loc.audiomd.AudioType;
@@ -939,9 +939,11 @@ public class ConnectorService {
         final List<String> asyncIds = this.getLiteralStrings(queueModel, parent, HAS_ITEM);
         final String itemPath = QUEUE_NODE + "/" + entityId;
         if (asyncIds.contains(subjects.getSubject(itemPath).getURI())) {
-            final String state = this.datastreamService.findOrCreateDatastream(session, itemPath).getNode()
+            final Datastream ds = this.datastreamService.findOrCreateDatastream(session, itemPath);
+            final String state = ds.getNode()
                     .getProperties(prefix(HAS_INGEST_STATE))
                     .nextProperty()
+                    .getValues()[0]
                     .getString();
 
             switch (state) {
@@ -1171,11 +1173,11 @@ public class ConnectorService {
         while (it.hasNext()) {
             final String itemUri = it.nextStatement().getObject().asLiteral().getString();
             final String path = subjects.getPathFromSubject(queueModel.createResource(itemUri));
-            if (this.datastreamService.findOrCreateDatastream(session, path).getContentNode()
-                    .getProperties(prefix(HAS_INGEST_STATE))
-                    .nextProperty()
-                    .getString()
-                    .equals("QUEUED")) {
+            final Datastream ds = this.datastreamService.findOrCreateDatastream(session, path);
+            final javax.jcr.Property p = ds.getNode().getProperties(prefix(HAS_INGEST_STATE)).nextProperty();
+            final String val = p.getValues()[0].getString();
+
+            if (val.equals("QUEUED")) {
                 queueItems.add(path);
             }
         }
@@ -1474,7 +1476,7 @@ public class ConnectorService {
                 /* load the actual binary data into the repo */
                 LOG.info("reading binary from {}", fileUri.toASCIIString());
                 try (final InputStream src = fileUri.toURL().openStream()) {
-                    final Datastream fileDs = this.datastreamService.findOrCreateDatastream(session, filePath);
+                    final Datastream fileDs = this.datastreamService.findOrCreateDatastream(session, filePath + "/DATA");
                     fileDs.getBinary().setContent(src, f.getMimetype(), null, null, datastreamService.getStoragePolicyDecisionPoint());
                 } catch (IOException | InvalidChecksumException e) {
                     throw new RepositoryException(e);
