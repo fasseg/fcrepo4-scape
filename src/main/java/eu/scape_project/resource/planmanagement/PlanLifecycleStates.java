@@ -47,8 +47,7 @@ import com.hp.hpl.jena.rdf.model.RDFNode;
  * @author frank asseg
  * 
  */
-@Component
-@Scope("prototype")
+@Scope("request")
 @Path("/scape/plan-state")
 public class PlanLifecycleStates {
 

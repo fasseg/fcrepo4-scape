@@ -40,8 +40,7 @@ import eu.scape_project.util.ScapeMarshaller;
  *
  */
 
-@Component
-@Scope("prototype")
+@Scope("request")
 @Path("/scape/metadata")
 public class Metadata {
 

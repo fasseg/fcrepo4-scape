@@ -40,8 +40,7 @@ import eu.scape_project.util.ScapeMarshaller;
  * @author frank asseg
  * 
  */
-@Component
-@Scope("prototype")
+@Scope("request")
 @Path("/scape/entity-async")
 public class AsyncIntellectualEntities {
 

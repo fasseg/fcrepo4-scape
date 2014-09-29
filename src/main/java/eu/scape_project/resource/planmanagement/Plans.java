@@ -62,8 +62,7 @@ import eu.scape_project.model.plan.PlanLifecycleState;
  * @author frank asseg
  * 
  */
-@Component
-@Scope("prototype")
+@Scope("request")
 @Path("/scape/plan")
 public class Plans {
 

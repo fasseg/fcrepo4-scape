@@ -54,8 +54,7 @@ import eu.scape_project.util.ScapeMarshaller;
  * @author frank asseg
  * 
  */
-@Component
-@Scope("prototype")
+@Scope("request")
 @Path("/scape/plan-list")
 public class PlanList {
 

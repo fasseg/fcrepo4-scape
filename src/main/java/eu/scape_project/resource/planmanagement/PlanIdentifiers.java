@@ -31,8 +31,7 @@ import org.springframework.stereotype.Component;
  * @author frank asseg
  * 
  */
-@Component
-@Scope("prototype")
+@Scope("request")
 @Path("/scape/plan-id/reserve")
 public class PlanIdentifiers {
     /**

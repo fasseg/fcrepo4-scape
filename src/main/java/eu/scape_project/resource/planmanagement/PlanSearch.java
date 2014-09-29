@@ -50,8 +50,7 @@ import com.hp.hpl.jena.rdf.model.StmtIterator;
  * @author frank asseg
  * 
  */
-@Component
-@Scope("prototype")
+@Scope("request")
 @Path("/scape/plan/sru")
 public class PlanSearch {
 
