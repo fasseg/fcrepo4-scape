@@ -49,19 +49,19 @@ Prepackaged WAR
 
 A prepackaged Fedora 4 WAR file which includes the SCAPE Connector API and the SCAPE Plan Management API is available at
 
-[SCAPE Fcrepo4 BETA 4 War](https://drive.google.com/file/d/0B5nd_qlYdcqySUMxeU1HVVlvUms/edit?usp=sharing)
+[SCAPE Fcrepo4 BETA 4 War](https://drive.google.com/file/d/0B5nd_qlYdcqyZ2JLZHpIbzdtMjg/edit?usp=sharing)
 
 
 #### Ingest an Intellectual Entity:
 
 ```bash
-$ curl -X POST http://localhost:8080/fcrepo/rest/scape/entity -d @${CONNECTOR_FOLDER}/src/test/resources/entity-minimal.xml
+$ curl -H "Content-Type:text/xml" -X POST http://localhost:8080/fcrepo/rest/scape/entity -d @${CONNECTOR_FOLDER}/src/test/resources/entity-minimal.xml
 ```
 
 #### Ingest an Intellectual Entity asynchronously:
 
 ```bash
-$ curl -X POST http://localhost:8080/fcrepo/rest/scape/entity-async -d @${CONNECTOR_FOLDER}/src/test/resources/entity-minimal.xml
+$ curl -H "Content-Type:text/xml" -X POST http://localhost:8080/fcrepo/rest/scape/entity-async -d @${CONNECTOR_FOLDER}/src/test/resources/entity-minimal.xml
 ```
 
 #### Retrieve an Intellectual Entity:
@@ -182,7 +182,7 @@ Creating a WAR file from sources
 --------------------------------
 
 _If you're not sure you want to do this by yourself you can download a prepackaged WAR file from_ 
-[SCAPE Fcrepo 4 War](https://drive.google.com/file/d/0B5nd_qlYdcqyM0pNbmJrSzh1dW8/edit?usp=sharing)
+[SCAPE Fcrepo 4 War](https://drive.google.com/file/d/0B5nd_qlYdcqyZ2JLZHpIbzdtMjg/edit?usp=sharing)
 
 Since Fedora 4 is in active development and therefore the APIs used are not yet finalized, this project might not run on an arbitrary version of Fedora 4.
 
