@@ -49,7 +49,7 @@ Prepackaged WAR
 
 A prepackaged Fedora 4 WAR file which includes the SCAPE Connector API and the SCAPE Plan Management API is available at
 
-[SCAPE Fcrepo4 BETA 4 War](https://drive.google.com/file/d/0B5nd_qlYdcqyZ2JLZHpIbzdtMjg/edit?usp=sharing)
+[SCAPE Fcrepo4 BETA 4 War](https://drive.google.com/file/d/0B5nd_qlYdcqyaXZZWVViYWlXajg/edit?usp=sharing)
 
 
 #### Ingest an Intellectual Entity:
@@ -182,7 +182,7 @@ Creating a WAR file from sources
 --------------------------------
 
 _If you're not sure you want to do this by yourself you can download a prepackaged WAR file from_ 
-[SCAPE Fcrepo 4 War](https://drive.google.com/file/d/0B5nd_qlYdcqyZ2JLZHpIbzdtMjg/edit?usp=sharing)
+[SCAPE Fcrepo 4 War](https://drive.google.com/file/d/0B5nd_qlYdcqyaXZZWVViYWlXajg/edit?usp=sharing)
 
 Since Fedora 4 is in active development and therefore the APIs used are not yet finalized, this project might not run on an arbitrary version of Fedora 4.
 
